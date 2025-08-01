@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutrient Calculator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🥗 Nutrient Calculator</h1>
+        
+        <!-- Inventory Management Section -->
+        <div class="section inventory-section">
+            <h2>📦 Inventory Management</h2>
+            <div class="inventory-controls">
+                <button class="primary-btn" onclick="showAddProductModal()">➕ Add New Product</button>
+                <button class="secondary-btn" onclick="importInventory()">📁 Import from CSV</button>
+                <button class="secondary-btn" onclick="exportInventory()">💾 Export to CSV</button>
+                <input type="file" id="inventoryImportFile" class="file-input" accept=".csv" style="display: none;">
+            </div>
+            <div class="inventory-list" id="inventoryList">
+                <div class="inventory-empty" id="inventoryEmpty">
+                    <p>No products in inventory. Add products or import from CSV.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal Planning Section -->
+        <div class="section meal-planning-section">
+            <h2>🍽️ Meal Planning</h2>
+            <div class="meal-planning-grid">
+                <div class="product-selector-panel">
+                    <div class="tabs">
+                        <div class="tab active" onclick="switchTab('search')">🔍 Search</div>
+                        <div class="tab" onclick="switchTab('browse')">📋 Browse</div>
+                        <div class="tab" onclick="switchTab('import')">📝 Import Text</div>
+                        <div class="tab" onclick="switchTab('custom')">✨ Custom</div>
+                    </div>
+                    
+                    <div id="searchTab" class="tab-content active">
+                        <input type="text" 
+                               class="search-box" 
+                               id="searchBox" 
+                               placeholder="🔍 Start typing product name...">
+                        <div class="product-list" id="productList"></div>
+                    </div>
+                    
+                    <div id="browseTab" class="tab-content">
+                        <div class="browse-products-list" id="browseProductsList"></div>
+                    </div>
+                    
+                    <div id="importTab" class="tab-content">
+                        <div class="text-import-section">
+                            <textarea class="import-textarea" 
+                                      id="importTextarea" 
+                                      placeholder="Paste product list in format:
+Apple - 150
+Banana - 200
+Oats - 50"></textarea>
+                            <button class="import-btn" onclick="importProductList()">Import List</button>
+                            <div class="import-result" id="importResult"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="customTab" class="tab-content">
+                        <div class="custom-product-section">
+                            <h4>Add Custom Product</h4>
+                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Custom products are for one-time use and won't be saved to inventory.</p>
+                            <div class="custom-product-form">
+                                <input type="text" id="customProductName" placeholder="Product name" class="custom-input">
+                                <input type="number" id="customQuantity" placeholder="Quantity (g)" min="1" value="100" class="custom-input">
+                                <input type="number" id="customCalories" placeholder="Calories/100g" min="0" step="0.1" class="custom-input">
+                                <input type="number" id="customProtein" placeholder="Protein/100g" min="0" step="0.1" class="custom-input">
+                                <input type="number" id="customFat" placeholder="Fat/100g" min="0" step="0.1" class="custom-input">
+                                <input type="number" id="customCarbs" placeholder="Carbs/100g" min="0" step="0.1" class="custom-input">
+                                <input type="number" id="customFiber" placeholder="Fiber/100g" min="0" step="0.1" class="custom-input">
+                                <button class="custom-add-btn" onclick="addCustomProduct()">Add Custom Product</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="selected-products-panel">
+                    <h3>Selected Products</h3>
+                    <div class="selected-products" id="selectedProducts">
+                        <div class="empty-state">No products selected</div>
+                    </div>
+                    
+                    <div class="nutrients-preview">
+                        <h4>Nutrients Preview</h4>
+                        <div class="nutrient-row">
+                            <span>Selected:</span>
+                            <span id="selectedNutrients">0 kcal | 0g protein | 0g fat | 0g carbs | 0g fiber</span>
+                        </div>
+                        <div class="nutrient-row">
+                            <span>Daily Total:</span>
+                            <span id="dailyTotalNutrients">0 kcal | 0g protein | 0g fat | 0g carbs | 0g fiber</span>
+                        </div>
+                        <div class="nutrient-row total">
+                            <span>Combined:</span>
+                            <span id="combinedNutrients">0 kcal | 0g protein | 0g fat | 0g carbs | 0g fiber</span>
+                        </div>
+                    </div>
+                    
+                    <button class="apply-btn" id="applyBtn" onclick="applyChanges()" disabled>
+                        ✅ Apply Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Summary Section -->
+        <div class="section daily-summary-section">
+            <h2>📊 Daily Summary</h2>
+            <div class="date-selector">
+                <button onclick="changeDate(-1)">◀</button>
+                <span id="currentDate"></span>
+                <button onclick="changeDate(1)" id="nextDateBtn">▶</button>
+            </div>
+            
+            <div class="daily-stats" id="dailyStats">
+                <div class="nutrient-card">
+                    <div class="nutrient-value" id="dailyCalories">0</div>
+                    <div class="nutrient-label">Calories (kcal)</div>
+                </div>
+                <div class="nutrient-card">
+                    <div class="nutrient-value" id="dailyProtein">0</div>
+                    <div class="nutrient-label">Protein (g)</div>
+                </div>
+                <div class="nutrient-card">
+                    <div class="nutrient-value" id="dailyFat">0</div>
+                    <div class="nutrient-label">Fat (g)</div>
+                </div>
+                <div class="nutrient-card">
+                    <div class="nutrient-value" id="dailyCarbs">0</div>
+                    <div class="nutrient-label">Carbs (g)</div>
+                </div>
+                <div class="nutrient-card">
+                    <div class="nutrient-value" id="dailyFiber">0</div>
+                    <div class="nutrient-label">Fiber (g)</div>
+                </div>
+            </div>
+            
+            <div class="daily-items" id="dailyItems">
+                <h3>Consumed Items</h3>
+                <div class="daily-items-list" id="dailyItemsList">
+                    <div class="empty-state">No items consumed today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Management Section -->
+        <div class="section history-section">
+            <h2>📜 History Management</h2>
+            <div class="history-controls">
+                <button class="secondary-btn" onclick="importHistory()">📁 Import History CSV</button>
+                <button class="secondary-btn" onclick="exportHistory()">💾 Export History CSV</button>
+                <button class="secondary-btn danger" onclick="clearOldHistory()">🗑️ Clear Old Entries (>5 days)</button>
+                <input type="file" id="historyImportFile" class="file-input" accept=".csv" style="display: none;">
+            </div>
+            <div class="history-info" id="historyInfo">
+                <p>History automatically removes entries older than 5 days.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Product Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <h3 id="modalTitle">Add New Product</h3>
+            <form id="productForm">
+                <div class="form-group">
+                    <label>Product Name:</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantity (g):</label>
+                    <input type="number" id="productQuantity" min="0" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Calories per 100g:</label>
+                    <input type="number" id="productCalories" min="0" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Protein per 100g:</label>
+                    <input type="number" id="productProtein" min="0" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Fat per 100g:</label>
+                    <input type="number" id="productFat" min="0" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Carbs per 100g:</label>
+                    <input type="number" id="productCarbs" min="0" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Fiber per 100g:</label>
+                    <input type="number" id="productFiber" min="0" step="0.1" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="secondary-btn" onclick="closeProductModal()">Cancel</button>
+                    <button type="submit" class="primary-btn">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
