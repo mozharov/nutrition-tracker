@@ -27,7 +27,49 @@ function loadFromLocalStorage() {
     
     if (savedHistory) {
         history = JSON.parse(savedHistory);
+        migrateHistoryData(); // Add nutritional data to old entries
         cleanOldHistoryEntries();
+    }
+}
+
+// Migrate old history entries to include nutritional data
+function migrateHistoryData() {
+    let migrated = false;
+    history = history.map(entry => {
+        // Check if entry already has nutritional data
+        if (entry.Calories_100g !== undefined) {
+            return entry;
+        }
+        
+        // Try to find product in inventory to get nutritional data
+        const product = inventory.find(p => p.Product === entry.Product);
+        if (product) {
+            migrated = true;
+            return {
+                ...entry,
+                Calories_100g: product.Calories_100g || 0,
+                Protein_100g: product.Protein_100g || 0,
+                Fat_100g: product.Fat_100g || 0,
+                Carbs_100g: product.Carbs_100g || 0,
+                Fiber_100g: product.Fiber_100g || 0
+            };
+        }
+        
+        // If product not found in inventory, add zero values
+        migrated = true;
+        return {
+            ...entry,
+            Calories_100g: 0,
+            Protein_100g: 0,
+            Fat_100g: 0,
+            Carbs_100g: 0,
+            Fiber_100g: 0
+        };
+    });
+    
+    if (migrated) {
+        saveToLocalStorage();
+        console.log('Migrated history entries to include nutritional data');
     }
 }
 
@@ -290,18 +332,49 @@ function handleHistoryImport(event) {
         dynamicTyping: true,
         skipEmptyLines: true,
         complete: function(results) {
+            if (results.data.length === 0) {
+                alert('No data found in the file');
+                return;
+            }
+            
+            // Validate that the imported data has the required fields
+            const requiredFields = ['Date', 'Product', 'Quantity_g'];
+            const firstRow = results.data[0];
+            const missingFields = requiredFields.filter(field => !(field in firstRow));
+            
+            if (missingFields.length > 0) {
+                alert(`Missing required fields: ${missingFields.join(', ')}`);
+                return;
+            }
+            
+            // Check if nutritional data is included
+            const hasNutritionData = 'Calories_100g' in firstRow;
+            
             // Replace history with imported data
             history = results.data.map(row => ({
                 ...row,
-                id: generateId()
+                id: generateId(),
+                // Ensure numeric values for nutritional data
+                Calories_100g: parseFloat(row.Calories_100g) || 0,
+                Protein_100g: parseFloat(row.Protein_100g) || 0,
+                Fat_100g: parseFloat(row.Fat_100g) || 0,
+                Carbs_100g: parseFloat(row.Carbs_100g) || 0,
+                Fiber_100g: parseFloat(row.Fiber_100g) || 0
             }));
             
             cleanOldHistoryEntries();
             saveToLocalStorage();
             updateDailyStats();
             updateDailyItemsList();
+            updateNutrientsPreview();
             
-            alert(`Successfully imported ${results.data.length} history entries`);
+            let message = `Successfully imported ${results.data.length} history entries`;
+            if (hasNutritionData) {
+                message += ' with nutritional data';
+            } else {
+                message += ' (no nutritional data found - will use current inventory values)';
+            }
+            alert(message);
         },
         error: function(error) {
             alert('Error importing history: ' + error.message);
@@ -318,10 +391,16 @@ window.exportHistory = function() {
         return;
     }
     
-    // Remove id field for export
+    // Remove id field for export, but keep all nutritional data
     const exportData = history.map(({id, ...rest}) => rest);
     const csv = Papa.unparse(exportData);
-    downloadCSV(csv, 'history.csv');
+    
+    // Generate filename with current date
+    const today = new Date();
+    const dateStr = formatDate(today);
+    const filename = `nutrition_history_${dateStr}.csv`;
+    
+    downloadCSV(csv, filename);
 };
 
 window.clearOldHistory = function() {
