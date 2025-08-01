@@ -71,6 +71,9 @@ function initializeEventListeners() {
     // Search box
     document.getElementById('searchBox').addEventListener('input', handleSearch);
     
+    // Inventory search box
+    document.getElementById('inventorySearchBox').addEventListener('input', handleInventorySearch);
+    
     // Close modal on outside click
     document.getElementById('productModal').addEventListener('click', function(e) {
         if (e.target === this) {
@@ -89,16 +92,28 @@ window.switchTab = function(tabName) {
 };
 
 // Inventory Management Functions
-function updateInventoryDisplay() {
+function updateInventoryDisplay(searchTerm = '') {
     const inventoryList = document.getElementById('inventoryList');
     
-    if (inventory.length === 0) {
-        inventoryList.innerHTML = '<div class="inventory-empty" id="inventoryEmpty"><p>No products in inventory. Add products or import from CSV.</p></div>';
+    // Filter inventory based on search term
+    let filteredInventory = inventory;
+    if (searchTerm) {
+        filteredInventory = inventory.filter(product => 
+            product.Product.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }
+    
+    if (filteredInventory.length === 0) {
+        if (searchTerm) {
+            inventoryList.innerHTML = '<div class="inventory-empty"><p>No products found matching your search.</p></div>';
+        } else {
+            inventoryList.innerHTML = '<div class="inventory-empty" id="inventoryEmpty"><p>No products in inventory. Add products or import from CSV.</p></div>';
+        }
     } else {
         inventoryList.innerHTML = '';
         
         // Sort inventory: products with quantity > 0 first (sorted by name), then products with quantity = 0 (sorted by name)
-        const sortedInventory = [...inventory].sort((a, b) => {
+        const sortedInventory = [...filteredInventory].sort((a, b) => {
             // First, separate by quantity (0 vs non-0)
             if (a.Quantity_g === 0 && b.Quantity_g > 0) return 1;
             if (a.Quantity_g > 0 && b.Quantity_g === 0) return -1;
@@ -113,6 +128,12 @@ function updateInventoryDisplay() {
     }
     
     updateBrowseProductsList();
+}
+
+// Handle inventory search
+function handleInventorySearch(event) {
+    const searchTerm = event.target.value.trim();
+    updateInventoryDisplay(searchTerm);
 }
 
 function createInventoryItemElement(product) {
@@ -195,6 +216,17 @@ window.deleteProduct = function(productId) {
         inventory = inventory.filter(p => p.id !== productId);
         saveToLocalStorage();
         updateInventoryDisplay();
+    }
+};
+
+// Delete history item
+window.deleteHistoryItem = function(historyId) {
+    if (confirm('Are you sure you want to delete this item from history?')) {
+        history = history.filter(h => h.id !== historyId);
+        saveToLocalStorage();
+        updateDailyStats();
+        updateDailyItemsList();
+        updateNutrientsPreview();
     }
 };
 
@@ -777,6 +809,7 @@ function updateDailyItemsList() {
                 <div class="daily-item-header">
                     <span class="daily-item-name">${item.Product}</span>
                     <span class="daily-item-quantity">${item.Quantity_g}g</span>
+                    <button class="delete-btn" onclick="deleteHistoryItem('${item.id}')">Delete</button>
                 </div>
                 <div class="daily-item-nutrients">
                     ${calories} kcal | ${protein}g protein | ${fat}g fat | ${carbs}g carbs | ${fiber}g fiber

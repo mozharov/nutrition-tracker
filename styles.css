@@ -87,6 +87,9 @@ h3 {
 .inventory-controls {
     margin-bottom: 20px;
 }
+.inventory-search {
+    margin-bottom: 15px;
+}
 
 .inventory-list {
     max-height: 400px;
@@ -470,11 +473,18 @@ h3 {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 5px;
+    gap: 10px;
+}
+
+.daily-item-header .delete-btn {
+    padding: 4px 10px;
+    font-size: 0.8em;
 }
 
 .daily-item-name {
     font-weight: 500;
     color: #2c3e50;
+    flex: 1;
 }
 
 .daily-item-quantity {
