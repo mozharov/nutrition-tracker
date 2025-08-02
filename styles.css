@@ -455,6 +455,12 @@ h3 {
     color: #7f8c8d;
     font-size: 0.9em;
 }
+.nutrient-percentage {
+    color: #3498db;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-top: 5px;
+}
 
 .daily-items-list {
     max-height: 300px;

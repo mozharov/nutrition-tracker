@@ -656,7 +656,7 @@ function updateNutrientsPreview() {
     
     document.getElementById('selectedNutrients').textContent = formatNutrients(selected, true);
     document.getElementById('dailyTotalNutrients').textContent = formatNutrients(daily, true);
-    document.getElementById('combinedNutrients').textContent = formatNutrients(combined, true);
+    document.getElementById('combinedNutrients').textContent = formatNutrients(combined, true, true);
 }
 
 function calculateNutrients(items) {
@@ -697,14 +697,42 @@ function calculateNutrients(items) {
     return totals;
 }
 
-function formatNutrients(nutrients, roundToWhole = false) {
+function calculateMacroPercentages(nutrients) {
+    // Calculate calories from each macronutrient
+    const proteinCalories = nutrients.protein * 4;
+    const fatCalories = nutrients.fat * 9;
+    const carbCalories = nutrients.carbs * 4;
+    
+    // Total calories from macros (might differ slightly from reported calories)
+    const totalMacroCalories = proteinCalories + fatCalories + carbCalories;
+    
+    // Calculate percentages
+    const percentages = {
+        protein: totalMacroCalories > 0 ? Math.round((proteinCalories / totalMacroCalories) * 100) : 0,
+        fat: totalMacroCalories > 0 ? Math.round((fatCalories / totalMacroCalories) * 100) : 0,
+        carbs: totalMacroCalories > 0 ? Math.round((carbCalories / totalMacroCalories) * 100) : 0
+    };
+    
+    return percentages;
+}
+
+function formatNutrients(nutrients, roundToWhole = false, includePercentages = false) {
+    let result;
+    
     if (roundToWhole) {
         // Round to whole numbers for planning and daily totals
-        return `${Math.round(nutrients.calories)} kcal | ${Math.round(nutrients.protein)}g protein | ${Math.round(nutrients.fat)}g fat | ${Math.round(nutrients.carbs)}g carbs | ${Math.round(nutrients.fiber)}g fiber`;
+        result = `${Math.round(nutrients.calories)} kcal | ${Math.round(nutrients.protein)}g protein | ${Math.round(nutrients.fat)}g fat | ${Math.round(nutrients.carbs)}g carbs | ${Math.round(nutrients.fiber)}g fiber`;
     } else {
         // Keep 1 decimal place for other displays
-        return `${nutrients.calories} kcal | ${nutrients.protein}g protein | ${nutrients.fat}g fat | ${nutrients.carbs}g carbs | ${nutrients.fiber}g fiber`;
+        result = `${nutrients.calories} kcal | ${nutrients.protein}g protein | ${nutrients.fat}g fat | ${nutrients.carbs}g carbs | ${nutrients.fiber}g fiber`;
     }
+    
+    if (includePercentages && (nutrients.protein > 0 || nutrients.fat > 0 || nutrients.carbs > 0)) {
+        const percentages = calculateMacroPercentages(nutrients);
+        result += ` | P:${percentages.protein}% F:${percentages.fat}% C:${percentages.carbs}%`;
+    }
+    
+    return result;
 }
 
 window.applyChanges = function() {
@@ -868,6 +896,18 @@ function updateDailyStats() {
     document.getElementById('dailyFat').textContent = Math.round(nutrients.fat);
     document.getElementById('dailyCarbs').textContent = Math.round(nutrients.carbs);
     document.getElementById('dailyFiber').textContent = Math.round(nutrients.fiber);
+    
+    // Calculate and display percentages
+    if (nutrients.protein > 0 || nutrients.fat > 0 || nutrients.carbs > 0) {
+        const percentages = calculateMacroPercentages(nutrients);
+        document.getElementById('dailyProteinPercent').textContent = `${percentages.protein}%`;
+        document.getElementById('dailyFatPercent').textContent = `${percentages.fat}%`;
+        document.getElementById('dailyCarbsPercent').textContent = `${percentages.carbs}%`;
+    } else {
+        document.getElementById('dailyProteinPercent').textContent = '';
+        document.getElementById('dailyFatPercent').textContent = '';
+        document.getElementById('dailyCarbsPercent').textContent = '';
+    }
 }
 
 function updateDailyItemsList() {
