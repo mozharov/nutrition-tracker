@@ -185,11 +185,11 @@ function createInventoryItemElement(product) {
         <div class="inventory-item-info">
             <div class="inventory-item-name">${product.Product}</div>
             <div class="inventory-item-nutrients">
-                ${product.Calories_100g} kcal | ${product.Protein_100g}g protein | 
-                ${product.Fat_100g}g fat | ${product.Carbs_100g}g carbs | ${product.Fiber_100g}g fiber
+                ${Math.round(product.Calories_100g * 10) / 10} kcal | ${Math.round(product.Protein_100g * 10) / 10}g protein | 
+                ${Math.round(product.Fat_100g * 10) / 10}g fat | ${Math.round(product.Carbs_100g * 10) / 10}g carbs | ${Math.round(product.Fiber_100g * 10) / 10}g fiber
             </div>
         </div>
-        <div class="inventory-item-quantity">${product.Quantity_g}g</div>
+        <div class="inventory-item-quantity">${Math.round(product.Quantity_g * 10) / 10}g</div>
         <div class="inventory-item-actions">
             <button class="edit-btn" onclick="editProduct('${product.id}')">Edit</button>
             <button class="delete-btn" onclick="deleteProduct('${product.id}')">Delete</button>
@@ -654,9 +654,9 @@ function updateNutrientsPreview() {
         fiber: selected.fiber + daily.fiber
     };
     
-    document.getElementById('selectedNutrients').textContent = formatNutrients(selected);
-    document.getElementById('dailyTotalNutrients').textContent = formatNutrients(daily);
-    document.getElementById('combinedNutrients').textContent = formatNutrients(combined);
+    document.getElementById('selectedNutrients').textContent = formatNutrients(selected, true);
+    document.getElementById('dailyTotalNutrients').textContent = formatNutrients(daily, true);
+    document.getElementById('combinedNutrients').textContent = formatNutrients(combined, true);
 }
 
 function calculateNutrients(items) {
@@ -697,8 +697,14 @@ function calculateNutrients(items) {
     return totals;
 }
 
-function formatNutrients(nutrients) {
-    return `${nutrients.calories} kcal | ${nutrients.protein}g protein | ${nutrients.fat}g fat | ${nutrients.carbs}g carbs | ${nutrients.fiber}g fiber`;
+function formatNutrients(nutrients, roundToWhole = false) {
+    if (roundToWhole) {
+        // Round to whole numbers for planning and daily totals
+        return `${Math.round(nutrients.calories)} kcal | ${Math.round(nutrients.protein)}g protein | ${Math.round(nutrients.fat)}g fat | ${Math.round(nutrients.carbs)}g carbs | ${Math.round(nutrients.fiber)}g fiber`;
+    } else {
+        // Keep 1 decimal place for other displays
+        return `${nutrients.calories} kcal | ${nutrients.protein}g protein | ${nutrients.fat}g fat | ${nutrients.carbs}g carbs | ${nutrients.fiber}g fiber`;
+    }
 }
 
 window.applyChanges = function() {
@@ -857,11 +863,11 @@ function calculateDailyNutrients() {
 function updateDailyStats() {
     const nutrients = calculateDailyNutrients();
     
-    document.getElementById('dailyCalories').textContent = nutrients.calories;
-    document.getElementById('dailyProtein').textContent = nutrients.protein;
-    document.getElementById('dailyFat').textContent = nutrients.fat;
-    document.getElementById('dailyCarbs').textContent = nutrients.carbs;
-    document.getElementById('dailyFiber').textContent = nutrients.fiber;
+    document.getElementById('dailyCalories').textContent = Math.round(nutrients.calories);
+    document.getElementById('dailyProtein').textContent = Math.round(nutrients.protein);
+    document.getElementById('dailyFat').textContent = Math.round(nutrients.fat);
+    document.getElementById('dailyCarbs').textContent = Math.round(nutrients.carbs);
+    document.getElementById('dailyFiber').textContent = Math.round(nutrients.fiber);
 }
 
 function updateDailyItemsList() {
