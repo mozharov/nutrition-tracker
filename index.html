@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +8,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <h1>🥗 Nutrient Calculator</h1>
-        
+
         <!-- Inventory Management Section -->
         <div class="section inventory-section">
             <h2>📦 Inventory Management</h2>
@@ -41,24 +43,20 @@
                         <div class="tab" onclick="switchTab('import')">📝 Import Text</div>
                         <div class="tab" onclick="switchTab('custom')">✨ Custom</div>
                     </div>
-                    
+
                     <div id="searchTab" class="tab-content active">
-                        <input type="text" 
-                               class="search-box" 
-                               id="searchBox" 
-                               placeholder="🔍 Start typing product name...">
+                        <input type="text" class="search-box" id="searchBox"
+                            placeholder="🔍 Start typing product name...">
                         <div class="product-list" id="productList"></div>
                     </div>
-                    
+
                     <div id="browseTab" class="tab-content">
                         <div class="browse-products-list" id="browseProductsList"></div>
                     </div>
-                    
+
                     <div id="importTab" class="tab-content">
                         <div class="text-import-section">
-                            <textarea class="import-textarea" 
-                                      id="importTextarea" 
-                                      placeholder="Paste product list in format:
+                            <textarea class="import-textarea" id="importTextarea" placeholder="Paste product list in format:
 Apple - 150
 Banana - 200
 Oats - 50"></textarea>
@@ -66,31 +64,39 @@ Oats - 50"></textarea>
                             <div class="import-result" id="importResult"></div>
                         </div>
                     </div>
-                    
+
                     <div id="customTab" class="tab-content">
                         <div class="custom-product-section">
                             <h4>Add Custom Product</h4>
-                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Custom products are for one-time use and won't be saved to inventory.</p>
+                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">Custom products are for
+                                one-time use and won't be saved to inventory.</p>
                             <div class="custom-product-form">
-                                <input type="text" id="customProductName" placeholder="Product name" class="custom-input">
-                                <input type="number" id="customQuantity" placeholder="Quantity (g)" min="1" value="100" class="custom-input">
-                                <input type="number" id="customCalories" placeholder="Calories/100g" min="0" step="0.1" class="custom-input">
-                                <input type="number" id="customProtein" placeholder="Protein/100g" min="0" step="0.1" class="custom-input">
-                                <input type="number" id="customFat" placeholder="Fat/100g" min="0" step="0.1" class="custom-input">
-                                <input type="number" id="customCarbs" placeholder="Carbs/100g" min="0" step="0.1" class="custom-input">
-                                <input type="number" id="customFiber" placeholder="Fiber/100g" min="0" step="0.1" class="custom-input">
+                                <input type="text" id="customProductName" placeholder="Product name"
+                                    class="custom-input">
+                                <input type="number" id="customQuantity" placeholder="Quantity (g)" min="1" value="100"
+                                    class="custom-input">
+                                <input type="number" id="customCalories" placeholder="Calories/100g" min="0" step="0.1"
+                                    class="custom-input">
+                                <input type="number" id="customProtein" placeholder="Protein/100g" min="0" step="0.1"
+                                    class="custom-input">
+                                <input type="number" id="customFat" placeholder="Fat/100g" min="0" step="0.1"
+                                    class="custom-input">
+                                <input type="number" id="customCarbs" placeholder="Carbs/100g" min="0" step="0.1"
+                                    class="custom-input">
+                                <input type="number" id="customFiber" placeholder="Fiber/100g" min="0" step="0.1"
+                                    class="custom-input">
                                 <button class="custom-add-btn" onclick="addCustomProduct()">Add Custom Product</button>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="selected-products-panel">
                     <h3>Selected Products</h3>
                     <div class="selected-products" id="selectedProducts">
                         <div class="empty-state">No products selected</div>
                     </div>
-                    
+
                     <div class="nutrients-preview">
                         <h4>Nutrients Preview</h4>
                         <div class="nutrient-row">
@@ -106,7 +112,7 @@ Oats - 50"></textarea>
                             <span id="combinedNutrients">0 kcal | 0g protein | 0g fat | 0g carbs | 0g fiber</span>
                         </div>
                     </div>
-                    
+
                     <button class="apply-btn" id="applyBtn" onclick="applyChanges()" disabled>
                         ✅ Apply Changes
                     </button>
@@ -122,7 +128,7 @@ Oats - 50"></textarea>
                 <span id="currentDate"></span>
                 <button onclick="changeDate(1)" id="nextDateBtn">▶</button>
             </div>
-            
+
             <div class="daily-stats" id="dailyStats">
                 <div class="nutrient-card">
                     <div class="nutrient-value" id="dailyCalories">0</div>
@@ -148,7 +154,7 @@ Oats - 50"></textarea>
                     <div class="nutrient-label">Fiber (g)</div>
                 </div>
             </div>
-            
+
             <div class="daily-items" id="dailyItems">
                 <h3>Consumed Items</h3>
                 <div class="daily-items-list" id="dailyItemsList">
@@ -163,16 +169,18 @@ Oats - 50"></textarea>
             <div class="history-controls">
                 <button class="secondary-btn" onclick="importHistory()">📁 Import History CSV</button>
                 <button class="secondary-btn" onclick="exportHistory()">💾 Export History CSV</button>
-                <button class="secondary-btn danger" onclick="clearOldHistory()">🗑️ Clear Old Entries (>5 days)</button>
+                <button class="secondary-btn danger" onclick="clearOldHistory()">🗑️ Clear Old Entries (>5
+                    days)</button>
                 <input type="file" id="historyImportFile" class="file-input" accept=".csv" style="display: none;">
             </div>
             <div class="history-info" id="historyInfo">
                 <p>History automatically removes entries older than 5 days.</p>
-                <p style="font-size: 0.9em; color: #666;">Export includes all nutritional data (calories, protein, fat, carbs, fiber) per 100g for each product.</p>
+                <p style="font-size: 0.9em; color: #666;">Export includes all nutritional data (calories, protein, fat,
+                    carbs, fiber) per 100g for each product.</p>
             </div>
         </div>
     </div>
-    
+
     <!-- Add/Edit Product Modal -->
     <div class="modal" id="productModal">
         <div class="modal-content">
@@ -213,7 +221,8 @@ Oats - 50"></textarea>
             </form>
         </div>
     </div>
-    
-    <script src="script.js"></script>
+
+    <script type="module" src="scripts/app.js"></script>
 </body>
+
 </html>
